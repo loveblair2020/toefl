@@ -1,0 +1,15 @@
+{
+  "name": "toefl-reading-practice",
+  "version": "1.0.0",
+  "description": "TOEFL Reading Practice — Vercel Deployment",
+  "private": true,
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
+}
