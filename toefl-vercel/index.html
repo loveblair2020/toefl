@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOEFL Reading Practice</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Georgia', serif; background: #fafafa; color: #222; min-height: 100vh; }
+.container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+
+.home-header { text-align: center; margin-bottom: 50px; }
+.home-header h1 { font-size: 2rem; font-weight: 700; color: #111; }
+.home-header p { margin-top: 10px; color: #666; font-size: 1rem; font-style: italic; }
+.task-cards { display: flex; flex-direction: column; gap: 18px; }
+.task-card { background: #fff; border: 1.5px solid #e0e0e0; border-radius: 12px; padding: 28px 32px; cursor: pointer; transition: border-color .2s, box-shadow .2s; }
+.task-card:hover { border-color: #333; box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+.tag { font-size: .7rem; font-family: sans-serif; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 8px; }
+.task-card h2 { font-size: 1.2rem; color: #111; margin-bottom: 6px; }
+.task-card p { font-size: .9rem; color: #666; line-height: 1.5; }
+.badge { margin-top: 12px; display: inline-block; font-size: .75rem; font-family: sans-serif; padding: 3px 10px; border-radius: 20px; }
+.d2 { background: #fff3e0; color: #e65100; }
+.d3 { background: #fce4ec; color: #c62828; }
+
+.practice { display: none; }
+.back-btn { font-family: sans-serif; font-size: .85rem; color: #555; background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 24px; display: block; }
+.back-btn:hover { color: #111; }
+.task-label { font-family: sans-serif; font-size: .7rem; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 6px; }
+.practice h2 { font-size: 1.4rem; margin-bottom: 20px; }
+
+.sel-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.sel-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sel-label { font-family: sans-serif; font-size: .8rem; color: #555; font-weight: 600; min-width: 110px; }
+select { font-family: sans-serif; font-size: .88rem; padding: 8px 12px; border: 1.5px solid #ddd; border-radius: 8px; background: #fff; color: #333; outline: none; cursor: pointer; }
+select:focus { border-color: #333; }
+.gen-btn { font-family: sans-serif; font-size: .9rem; padding: 10px 26px; background: #111; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+.gen-btn:hover { background: #333; }
+.gen-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+.passage-box { background: #fff; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 22px 26px; font-size: .97rem; line-height: 1.85; }
+.passage-title { font-size: 1.05rem; font-weight: 700; color: #111; margin-bottom: 10px; line-height: 1.4; }
+.passage-meta { font-family: sans-serif; font-size: .82rem; color: #555; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 10px; white-space: pre-line; }
+.passage-body p { margin-bottom: 10px; }
+.passage-body p:last-child { margin-bottom: 0; }
+.pass-tag { font-family: sans-serif; font-size: .68rem; letter-spacing: 1.2px; text-transform: uppercase; color: #bbb; margin-bottom: 6px; }
+
+/* SPLIT */
+.split-layout { display: flex; gap: 22px; align-items: flex-start; }
+.pass-panel { flex: 0 0 43%; position: sticky; top: 20px; max-height: 88vh; overflow-y: auto; }
+.q-panel { flex: 1; min-width: 0; }
+@media(max-width:640px){ .split-layout{ flex-direction:column; } .pass-panel{ position:static; max-height:none; } }
+
+/* TASK 1 */
+.passage-t1 { line-height: 2.5; }
+.blank-group { display: inline-flex; align-items: flex-end; vertical-align: baseline; margin: 0 3px; gap: 1px; }
+.hint-prefix { color: #999; font-weight: bold; font-family: 'Georgia', serif; font-size: .97rem; line-height: 1; }
+.letter-slots { display: inline-flex; gap: 5px; align-items: flex-end; }
+.letter-slot { display: inline-flex; flex-direction: column; align-items: center; }
+.slot-inp { width: 13px; height: 1.1em; border: none; background: transparent; font-family: 'Georgia', serif; font-size: .93rem; text-align: center; outline: none; color: #111; padding: 0; }
+.slot-inp:focus { background: #f0f0f0; border-radius: 2px; }
+.slot-bar { width: 13px; height: 2px; background: #555; margin-top: 2px; }
+.slot-inp.ok + .slot-bar { background: #2e7d32; }
+.slot-inp.bad + .slot-bar { background: #c62828; }
+.slot-inp.ok { color: #2e7d32; }
+.slot-inp.bad { color: #c62828; }
+
+/* MCQ NAV */
+.q-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.q-nav-counter { font-family: sans-serif; font-size: .85rem; color: #888; flex: 1; }
+.q-nav-dots { display: flex; gap: 5px; }
+.q-dot { width: 9px; height: 9px; border-radius: 50%; background: #e0e0e0; cursor: pointer; border: none; padding: 0; transition: background .15s; }
+.q-dot.active { background: #333; }
+.q-dot.answered { background: #90caf9; }
+.q-dot.correct { background: #66bb6a; }
+.q-dot.wrong2 { background: #ef9a9a; }
+.nav-btn { font-family: sans-serif; font-size: .82rem; padding: 6px 14px; border: 1.5px solid #ccc; border-radius: 7px; background: #fff; cursor: pointer; color: #444; }
+.nav-btn:hover:not(:disabled) { border-color: #333; color: #111; }
+.nav-btn:disabled { opacity: .35; cursor: default; }
+
+/* Q BLOCK */
+.q-block { background: #fff; border: 1.5px solid #eaeaea; border-radius: 10px; padding: 18px 20px; }
+.q-passage-tag { font-family: sans-serif; font-size: .68rem; letter-spacing: 1px; text-transform: uppercase; color: #bbb; margin-bottom: 4px; }
+.q-num { font-family: sans-serif; font-size: .7rem; color: #ccc; text-transform: uppercase; margin-bottom: 3px; }
+.q-type { font-family: sans-serif; font-size: .72rem; color: #aaa; margin-bottom: 8px; }
+.q-stem { font-size: .93rem; margin-bottom: 11px; line-height: 1.6; }
+.choices { display: flex; flex-direction: column; gap: 7px; }
+.choice { font-family: 'Georgia', serif; font-size: .9rem; text-align: left; padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; line-height: 1.5; }
+.choice:hover:not(:disabled) { border-color: #666; background: #f7f7f7; }
+.choice.sel { border-color: #333; background: #f2f2f2; }
+.choice.correct { border-color: #2e7d32; background: #e8f5e9; color: #1b5e20; }
+.choice.wrong { border-color: #c62828; background: #fce4ec; color: #b71c1c; }
+.rationale { margin-top: 11px; padding: 11px 14px; background: #f9f9f9; border-left: 3px solid #ddd; font-size: .85rem; line-height: 1.65; color: #555; font-family: sans-serif; display: none; }
+.evid { margin-top: 5px; font-style: italic; color: #999; font-size: .82rem; }
+
+/* RAT TASK1 */
+.rat-section { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.rat-block { background: #fff; border: 1.5px solid #eaeaea; border-radius: 10px; padding: 12px 16px; font-family: sans-serif; font-size: .85rem; }
+.rat-block strong { color: #111; }
+.rat-text { color: #555; margin-top: 3px; line-height: 1.6; }
+
+.submit-row { margin-top: 18px; display: flex; gap: 9px; flex-wrap: wrap; }
+.btn-submit { font-family: sans-serif; padding: 10px 24px; background: #111; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: .9rem; }
+.btn-submit:hover { background: #333; }
+.btn-again { font-family: sans-serif; padding: 10px 18px; background: #fff; color: #444; border: 1.5px solid #ccc; border-radius: 8px; cursor: pointer; font-size: .88rem; }
+.btn-again:hover { border-color: #333; }
+.btn-review { font-family: sans-serif; padding: 10px 22px; background: #1565c0; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: .9rem; }
+.btn-review:hover { background: #1976d2; }
+.btn-review:disabled { background: #90caf9; cursor: not-allowed; }
+
+.score-box { background: #fff; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 20px; margin-top: 18px; text-align: center; font-family: sans-serif; display: none; }
+.score-num { font-size: 2.2rem; font-weight: 700; color: #111; }
+.score-lbl { color: #888; font-size: .88rem; margin-top: 3px; }
+
+/* TIMER */
+.timer-box { position: fixed; top: 20px; right: 24px; background: #fff; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 8px 14px; font-family: sans-serif; font-size: 1rem; font-weight: 600; color: #111; box-shadow: 0 2px 10px rgba(0,0,0,.08); display: none; gap: 9px; align-items: center; z-index: 999; }
+.timer-box.warn { color: #c62828; border-color: #f48fb1; animation: pulse .8s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.55} }
+.tbtn { font-size: .73rem; color: #777; background: none; border: 1px solid #ddd; border-radius: 6px; padding: 2px 8px; cursor: pointer; }
+.tbtn-start { font-size: .73rem; font-weight: 700; color: #fff; background: #111; border: none; border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+
+.loading { text-align: center; padding: 60px 20px; font-family: sans-serif; color: #888; }
+.spinner { width: 32px; height: 32px; border: 3px solid #eee; border-top-color: #333; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to{ transform:rotate(360deg); } }
+.err-box { background: #fce4ec; color: #c62828; padding: 14px 18px; border-radius: 8px; font-family: sans-serif; font-size: .9rem; }
+
+/* REVIEW SESSION */
+.review-header { font-family: sans-serif; font-size: .72rem; letter-spacing: 1.5px; text-transform: uppercase; color: #1565c0; margin: 30px 0 14px; border-top: 2px solid #e3f2fd; padding-top: 20px; display: flex; align-items: center; gap: 8px; }
+.rev-section { background: #fff; border: 1.5px solid #e3f2fd; border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; }
+.rev-sec-label { font-family: sans-serif; font-size: .68rem; letter-spacing: 1.4px; text-transform: uppercase; color: #90caf9; margin-bottom: 6px; }
+.rev-sec-title { font-family: sans-serif; font-size: .92rem; font-weight: 700; color: #111; margin-bottom: 12px; }
+.rev-cloze-word { margin-bottom: 14px; }
+.rev-cloze-hint { font-family: 'Georgia', serif; font-size: .95rem; color: #777; font-weight: 600; }
+.rev-cloze-slots { display: inline-flex; gap: 5px; align-items: flex-end; margin-left: 1px; }
+.rev-cloze-result { font-family: sans-serif; font-size: .8rem; margin-top: 4px; display: none; }
+.rev-rat { margin-top: 8px; font-family: sans-serif; font-size: .82rem; color: #666; background: #f9f9f9; border-left: 3px solid #90caf9; padding: 8px 12px; line-height: 1.6; display: none; }
+.rev-submit { font-family: sans-serif; padding: 9px 22px; background: #1565c0; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: .88rem; margin-top: 14px; }
+.rev-submit:hover { background: #1976d2; }
+.rev-score { font-family: sans-serif; background: #e3f2fd; border: 1.5px solid #90caf9; border-radius: 10px; padding: 20px; margin-top: 14px; text-align: center; display: none; }
+.rev-score-num { font-size: 2rem; font-weight: 700; color: #1565c0; }
+.rev-score-lbl { color: #888; font-size: .85rem; margin-top: 4px; }
+
+/* REVIEW — Blank Review (Section A) */
+.rev-blank-item { background: #f8fbff; border: 1.5px solid #e3f2fd; border-radius: 8px; padding: 11px 14px; margin-bottom: 10px; }
+.rev-blank-word { font-family: 'Georgia', serif; font-size: .97rem; font-weight: 700; color: #111; margin-bottom: 5px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.rev-pos-tag { font-family: sans-serif; font-size: .68rem; letter-spacing: 1px; text-transform: uppercase; background: #e8f5e9; color: #2e7d32; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.rev-tense-tag { font-family: sans-serif; font-size: .68rem; letter-spacing: 1px; text-transform: uppercase; background: #e3f2fd; color: #1565c0; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.rev-blank-note { font-family: sans-serif; font-size: .85rem; color: #555; line-height: 1.65; }
+
+/* REVIEW — Structure Analysis (Section D) */
+.rev-sentence-box { font-family: 'Georgia', serif; font-size: .93rem; color: #222; background: #fafafa; border-left: 3px solid #90caf9; padding: 9px 13px; border-radius: 0 6px 6px 0; margin-bottom: 10px; line-height: 1.7; }
+.rev-sub-info { font-family: sans-serif; font-size: .82rem; color: #555; margin-bottom: 8px; font-style: italic; }
+.rev-pattern { font-family: sans-serif; font-size: .82rem; color: #1565c0; margin-bottom: 10px; }
+.rev-pattern code { background: #e3f2fd; padding: 2px 7px; border-radius: 5px; font-size: .82rem; }
+.rev-label-grid { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.rev-label-item { display: flex; align-items: flex-start; gap: 8px; font-family: sans-serif; font-size: .85rem; color: #444; line-height: 1.5; }
+.rev-label-tag { font-size: .65rem; font-weight: 700; padding: 2px 6px; border-radius: 5px; flex-shrink: 0; margin-top: 1px; font-family: sans-serif; letter-spacing: .5px; }
+.s-tag { background: #fce4ec; color: #c62828; }
+.v-tag { background: #e8f5e9; color: #2e7d32; }
+.o-tag { background: #fff3e0; color: #e65100; }
+.m-tag { background: #ede7f6; color: #4527a0; }
+
+/* REVIEW — Korean meaning styles */
+.rev-korean-badge { font-family: sans-serif; font-size: .75rem; background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; border-radius: 8px; padding: 1px 8px; font-weight: 600; }
+.rev-korean-line { font-family: sans-serif; font-size: .82rem; color: #f57f17; background: #fff8e1; border-left: 3px solid #ffe082; padding: 6px 11px; border-radius: 0 6px 6px 0; margin: 4px 0 10px; line-height: 1.6; }
+.rev-blank-note-korean { font-family: sans-serif; font-size: .82rem; color: #f57f17; margin-top: 4px; line-height: 1.6; border-top: 1px dashed #ffe082; padding-top: 5px; }
+.rev-rat-korean { margin-top: 7px; color: #f57f17; font-size: .82rem; border-top: 1px dashed #ffe082; padding-top: 6px; line-height: 1.6; }
+
+/* REVIEW — Word Analysis blocks */
+.rev-word-block { background: #f8fbff; border: 1.5px solid #e3f2fd; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.rev-word-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e3f2fd; }
+.rev-word-en { font-family: Georgia, serif; font-size: 1.05rem; font-weight: 700; color: #1a237e; }
+.rev-blank-badge { font-family: sans-serif; font-size: .68rem; font-weight: 700; letter-spacing: .5px; background: #1565c0; color: #fff; padding: 2px 8px; border-radius: 10px; }
+.rev-mini-q { background: #fff; border: 1px solid #e8eaf6; border-radius: 7px; padding: 9px 12px; margin-bottom: 8px; }
+.rev-mini-q:last-child { margin-bottom: 0; }
+.rev-mini-label { font-family: sans-serif; font-size: .68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #5c6bc0; margin-bottom: 5px; }
+.rev-mini-stem { font-family: sans-serif; font-size: .88rem; color: #333; margin-bottom: 8px; line-height: 1.5; font-weight: 500; }
+
+/* ── REVIEW: inline blank display ── */
+.rv-inline-hint { font-family: Georgia,serif; font-weight:700; color:#1565c0; }
+.rv-inline-slots { font-family: monospace; letter-spacing:3px; color:#888; margin-left:2px; }
+
+/* ── REVIEW: sentence display box ── */
+.rv-sent-display { font-family: Georgia,serif; font-size:.97rem; color:#222; background:#e8f5e9; border-left:4px solid #43a047; padding:12px 16px; border-radius:0 8px 8px 0; margin-bottom:14px; line-height:1.9; }
+.rv-answer-word { color:#1565c0; font-weight:700; background:#e3f2fd; padding:0 3px; border-radius:3px; }
+
+/* REVIEW — numbered word badges in sentence */
+.rv-num-word { display:inline; position:relative; white-space:nowrap; }
+.rv-num-badge { display:inline-flex; align-items:center; justify-content:center;
+  width:16px; height:16px; background:#e53935; color:#fff;
+  font-family:sans-serif; font-size:.62rem; font-weight:800;
+  border-radius:50%; margin-right:1px; vertical-align:middle;
+  position:relative; top:-1px; }
+.rv-num-badge-inline { display:inline-flex; align-items:center; justify-content:center;
+  width:18px; height:18px; background:#1565c0; color:#fff;
+  font-family:sans-serif; font-size:.65rem; font-weight:800;
+  border-radius:50%; margin-right:5px; flex-shrink:0; }
+.rv-q-num { font-family:sans-serif; font-size:.7rem; font-weight:800;
+  color:#fff; background:#e53935; padding:2px 7px; border-radius:10px;
+  margin-right:6px; flex-shrink:0; white-space:nowrap; }
+.rv-src-tag { font-family:sans-serif; font-size:.68rem; font-weight:800;
+  color:#fff; background:#00897b; padding:1px 6px; border-radius:8px;
+  margin-right:5px; flex-shrink:0; letter-spacing:.3px; }
+
+/* REVIEW — numbered sentence display */
+.rv-sents-box { background:#f1f8e9; border:1.5px solid #a5d6a7; border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+.rv-sents-title { font-family:sans-serif; font-size:.72rem; font-weight:800; color:#2e7d32; letter-spacing:.8px; text-transform:uppercase; margin-bottom:10px; }
+.rv-sent-line { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+.rv-sent-line:last-child { margin-bottom:0; }
+.rv-sent-num { flex-shrink:0; width:22px; height:22px; background:#388e3c; color:#fff;
+  font-family:sans-serif; font-size:.72rem; font-weight:800; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; margin-top:2px; }
+.rv-sent-text { font-family:Georgia,serif; font-size:.93rem; color:#1b5e20; line-height:1.8; }
+
+/* REVIEW — applied structure section */
+.rv-ap-block { background:#fff8e1; border:1.5px solid #ffe082; border-radius:10px; padding:13px 15px; margin-bottom:14px; }
+.rv-ap-sent { font-family:Georgia,serif; font-size:.95rem; color:#33691e; line-height:1.9; margin-bottom:8px; font-weight:500; }
+.rv-ap-blank { display:inline; color:#1565c0; font-style:italic; }
+.rv-ap-bnum { font-family:sans-serif; font-size:.7rem; font-weight:800; color:#e65100; }
+.rv-ap-rat { font-family:sans-serif; font-size:.8rem; color:#6d4c41; background:#efebe9; border-left:3px solid #a1887f; padding:6px 10px; border-radius:0 6px 6px 0; margin:4px 0 8px 0; line-height:1.6; }
+
+/* REVIEW — target word highlight with Q number */
+.rv-tw-word { display:inline; white-space:nowrap; }
+.rv-tw-num { display:inline-flex; align-items:center; justify-content:center;
+  width:17px; height:17px; background:#e53935; color:#fff;
+  font-family:sans-serif; font-size:.63rem; font-weight:800;
+  border-radius:50%; margin-right:1px; vertical-align:middle;
+  position:relative; top:-1px; flex-shrink:0; }
+
+/* ── REVIEW: short-answer grid ── */
+.rv-sa-desc { font-family:sans-serif; font-size:.82rem; color:#888; margin-bottom:10px; }
+.rv-sa-grid { display:flex; flex-direction:column; gap:10px; }
+.rv-sa-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.rv-sa-label { font-family:sans-serif; font-size:.88rem; font-weight:700; color:#1565c0; min-width:160px; flex-shrink:0; }
+.rv-sa-input { flex:1; min-width:160px; max-width:340px; font-family:Georgia,serif; font-size:.95rem; padding:7px 11px; border:1.5px solid #90caf9; border-radius:7px; outline:none; transition:border-color .15s; }
+.rv-sa-input:focus { border-color:#1565c0; }
+.rv-sa-input.ok { border-color:#43a047; background:#f1f8e9; color:#2e7d32; }
+.rv-sa-input.bad { border-color:#e53935; background:#fff5f5; color:#b71c1c; }
+.rv-sa-result { font-family:sans-serif; font-size:.85rem; font-weight:700; flex-shrink:0; }
+.rv-sa-ok { color:#2e7d32; }
+.rv-sa-bad { color:#c62828; }
+
+/* REVIEW — Sentence context display */
+.rev-sent-banner { display: flex; flex-direction: column; gap: 4px; background: #e8f5e9; border-left: 4px solid #43a047; border-radius: 0 8px 8px 0; padding: 10px 14px; margin-bottom: 14px; }
+.rev-sent-label { font-family: sans-serif; font-size: .7rem; font-weight: 700; letter-spacing: 1px; color: #2e7d32; text-transform: uppercase; margin-bottom: 2px; }
+.rev-sent-text { font-family: Georgia, serif; font-size: .93rem; color: #1b5e20; line-height: 1.7; }
+.rev-sent-ctx { font-family: Georgia, serif; font-size: .88rem; color: #37474f; background: #f1f8e9; border-left: 3px solid #aed581; padding: 7px 11px; border-radius: 0 6px 6px 0; margin-bottom: 10px; line-height: 1.7; }
+mark.rev-highlight { background: #fff176; color: #1a237e; font-weight: 700; border-radius: 3px; padding: 0 2px; }
+</style>
+</head>
+<body>
+<!-- API Key Bar (only needed when running as local file) -->
+<div id="apiKeyBar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a237e;color:#fff;padding:8px 16px;font-family:sans-serif;font-size:.82rem;align-items:center;gap:10px;flex-wrap:wrap;">
+  <span style="font-weight:700;">🔑 API Key 필요</span>
+  <span style="opacity:.8;">로컬 파일 실행 시 Anthropic API Key를 입력하세요.</span>
+  <input id="apiKeyInput" type="password" placeholder="sk-ant-..." style="flex:1;min-width:260px;max-width:420px;padding:5px 10px;border-radius:6px;border:none;font-size:.82rem;outline:none;font-family:monospace;"/>
+  <button onclick="saveApiKey()" style="background:#42a5f5;color:#fff;border:none;padding:5px 14px;border-radius:6px;cursor:pointer;font-weight:700;font-size:.82rem;">저장</button>
+  <span id="apiKeyStatus" style="opacity:.8;"></span>
+</div>
+<div class="container">
+<div id="home">
+  <div class="home-header">
+    <h1>TOEFL Reading Practice</h1>
+    <p>Choose a task to begin your session</p>
+  </div>
+  <div class="task-cards">
+    <div class="task-card" onclick="showTask(1)">
+      <div class="tag">Task 1</div><h2>Complete the Task</h2>
+      <p>Fill in blanks in an academic passage. Tests grammar, parts of speech, and verb tense. A grammar review session follows after completion.</p>
+      <span class="badge d3">Medium – Hard</span>
+    </div>
+    <div class="task-card" onclick="showTask(2)">
+      <div class="tag">Task 2</div><h2>Read in Daily Life</h2>
+      <p>Read two realistic documents (short + long) and answer comprehension questions.</p>
+      <span class="badge d2">Medium</span>
+    </div>
+    <div class="task-card" onclick="showTask(3)">
+      <div class="tag">Task 3</div><h2>Academic Passage Reading</h2>
+      <p>Read a short academic passage (max 200 words) and answer TOEFL-style questions.</p>
+      <span class="badge d3">Medium – Hard</span>
+    </div>
+  </div>
+</div>
+
+<div id="practice" class="practice">
+  <button class="back-btn" onclick="goHome()">← Back to Tasks</button>
+  <div class="task-label" id="pLabel"></div>
+  <h2 id="pTitle"></h2>
+  <div class="sel-grid" id="selGrid"></div>
+  <div id="content"></div>
+</div>
+</div>
+
+<div class="timer-box" id="timerBox">
+  <span id="timerDisp">--:--</span>
+  <button class="tbtn-start" id="tBtnStart" onclick="timerStart()">Start</button>
+  <button class="tbtn" id="tBtnPause" onclick="timerToggle()" style="display:none">Pause</button>
+  <button class="tbtn" id="tBtnReset" onclick="timerReset()" style="display:none">Reset</button>
+</div>
+
+<script>
+/* ── DATA ── */
+const T1_GROUPS = { 'Biology':['Genetics','Evolutionary Biology','Ecology','Marine & Environmental Biology','Physiology','Cell Biology','Microbiology'],'Art':['Painting','Architecture','Film','Photography','Theater'],'Science':['Astronomy','Chemistry','Physics','Meteorology','Geology','Engineering','Zoology','Entomology','Botany','Microbiology','Cognitive Science','Ecology','Paleontology','Physiology','Environmental Science','Anthropology','Psychology','Economics','Sociology'],'Humanities':['European History','American History','Linguistics','Literature'] };
+const T2_FORMATS = ['Email','Message Conversation','Advertisement','News Article','SNS Post','Official Notice'];
+const T2_TOPICS  = ['Announcement','Notice','Promotion','Event Info','Instructions','Community Post','Product Review','Travel Info','Health Tip','School Notice'];
+const T3_SUBJECTS= ['Genetics','Evolutionary Biology','Ecology','Marine & Environmental Biology','Physiology','Cell Biology','Microbiology','Geology','Astronomy','Psychology','Economics','Anthropology','Environmental Science','History'];
+const TASK_SECS  = {1:150,2:150,3:360};
+
+/* ── STATE ── */
+let curTask=0, sessionData=null, submitted=false, picks={};
+let allSlotIds=[];
+
+/* ── MCQ STATE ── */
+let MQ=[], MC=0, MS=false, MP={};
+
+/* ── REVIEW STATE ── */
+let RV=null, RVdone=false, RVpicks={};
+
+/* ── TIMER ── */
+let tTotal=150,tLeft=150,tRunning=false,tIv=null;
+function timerShow(n){ tTotal=TASK_SECS[n]||150; tLeft=tTotal; tRunning=false; clearInterval(tIv); const b=document.getElementById('timerBox'); b.style.display='flex'; b.classList.remove('warn'); id('tBtnStart').style.display='inline-block'; id('tBtnPause').style.display='none'; id('tBtnReset').style.display='none'; timerDraw(); }
+function timerHide(){ clearInterval(tIv); tRunning=false; id('timerBox').style.display='none'; }
+function timerStart(){ tRunning=true; id('tBtnStart').style.display='none'; id('tBtnPause').style.display='inline-block'; id('tBtnPause').textContent='Pause'; id('tBtnReset').style.display='inline-block'; clearInterval(tIv); tIv=setInterval(()=>{ if(!tRunning)return; tLeft--; timerDraw(); if(tLeft<=0){clearInterval(tIv);tRunning=false;id('tBtnPause').style.display='none';}},1000); }
+function timerToggle(){ tRunning=!tRunning; id('tBtnPause').textContent=tRunning?'Pause':'Resume'; }
+function timerReset(){ tLeft=tTotal; tRunning=true; id('tBtnPause').textContent='Pause'; id('timerBox').classList.remove('warn'); timerDraw(); }
+function timerDraw(){ const m=String(Math.floor(tLeft/60)).padStart(2,'0'),s=String(tLeft%60).padStart(2,'0'); id('timerDisp').textContent=`${m}:${s}`; id('timerBox').classList.toggle('warn',tLeft<=30&&tLeft>0); }
+
+/* ── HELPERS ── */
+function id(i){ return document.getElementById(i); }
+function randFrom(a){ return a[Math.floor(Math.random()*a.length)]; }
+function gv(i){ const e=id(i); return e?e.value:''; }
+/* ── API KEY MANAGEMENT ── */
+window._apiKey = localStorage.getItem('toefl_api_key') || '';
+function initApiKeyBar(){
+  // Show API key bar whenever not running inside claude.ai
+  const isEmbedded = location.hostname === 'claude.ai' || window.parent !== window;
+  if(!isEmbedded){
+    const bar = document.getElementById('apiKeyBar');
+    if(bar){ bar.style.display='flex'; document.body.style.paddingTop='48px'; }
+    if(window._apiKey){
+      document.getElementById('apiKeyInput').value = '••••••••••••';
+      document.getElementById('apiKeyStatus').textContent = '✓ 저장됨';
+    }
+  }
+}
+function saveApiKey(){
+  const val = (document.getElementById('apiKeyInput').value||'').trim();
+  if(!val){ document.getElementById('apiKeyStatus').textContent='⚠ 입력값 없음'; return; }
+  if(!val.startsWith('sk-ant-')){ document.getElementById('apiKeyStatus').textContent='⚠ 올바른 키 형식: sk-ant-...'; return; }
+  window._apiKey = val;
+  try{ localStorage.setItem('toefl_api_key', val); } catch(e){}
+  document.getElementById('apiKeyStatus').textContent='✓ 저장됨';
+  document.getElementById('apiKeyInput').value='••••••••••••';
+}
+document.addEventListener('DOMContentLoaded', initApiKeyBar);
+
+function parseJSON(raw){
+  const s=raw.indexOf('{'), e=raw.lastIndexOf('}');
+  if(s<0||e<0) throw new Error('No JSON found in response');
+  let str=raw.slice(s,e+1);
+  str=str.replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"');
+  str=str.replace(/,\s*([}\]])/g,'$1');
+  try{
+    return JSON.parse(str);
+  } catch(err){
+    try{
+      // Trim to last complete object boundary and close open structures
+      let fixed=str;
+      const lastGood=fixed.lastIndexOf('},{');
+      if(lastGood>0) fixed=fixed.slice(0,lastGood+1);
+      let opens=0, oSq=0;
+      for(let i=0;i<fixed.length;i++){
+        if(fixed[i]==='{')opens++; else if(fixed[i]==='}')opens--;
+        if(fixed[i]==='[')oSq++; else if(fixed[i]===']')oSq--;
+      }
+      for(let i=0;i<oSq;i++) fixed+=']';
+      for(let i=0;i<opens;i++) fixed+='}';
+      fixed=fixed.replace(/,\s*([}\]])/g,'$1');
+      return JSON.parse(fixed);
+    } catch(err2){
+      throw new Error('JSON parse failed: '+err.message);
+    }
+  }
+}
+async function callAPI(prompt, maxTok, _retry){
+  maxTok = maxTok || 3000;
+  _retry = _retry || 0;
+
+  // Vercel 배포 환경에서는 /api/chat 프록시 사용 (API Key 서버에서 관리)
+  // 로컬 실행 시에는 직접 Anthropic API 호출 (API Key 입력 필요)
+  const isVercel = location.hostname !== 'localhost' && location.protocol !== 'file:';
+  const endpoint = isVercel ? '/api/chat' : 'https://api.anthropic.com/v1/messages';
+
+  const headers = {'Content-Type':'application/json'};
+  if(!isVercel){
+    const apiKey = (window._apiKey||'').trim();
+    if(apiKey) headers['x-api-key'] = apiKey;
+    headers['anthropic-dangerous-request-check'] = 'true';
+  }
+
+  const r = await fetch(endpoint, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTok,
+      messages: [{role:'user', content:prompt}]
+    })
+  });
+
+  if(r.status===429){
+    if(_retry>=3) throw new Error('요청이 너무 많습니다. 잠시 후 다시 시도해 주세요. (429)');
+    const wait = (Math.pow(2,_retry)*3000) + Math.random()*1000;
+    await new Promise(res=>setTimeout(res,wait));
+    return callAPI(prompt, maxTok, _retry+1);
+  }
+  if(r.status===401) throw new Error('API 키가 없거나 잘못되었습니다. 상단의 API Key 입력란을 확인하세요.');
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const d=await r.json();
+  if(d.error) throw new Error(d.error.message||'API error');
+  return parseJSON((d.content||[]).map(b=>b.text||'').join(''));
+}
+
+/* ── NAV ── */
+function goHome(){ id('home').style.display='block'; id('practice').style.display='none'; sessionData=null; submitted=false; timerHide(); RV=null; RVdone=false; RVpicks={}; }
+function showTask(n){
+  curTask=n; submitted=false; sessionData=null; picks={}; allSlotIds=[]; RV=null; RVdone=false; RVpicks={};
+  id('home').style.display='none'; id('practice').style.display='block';
+  id('pLabel').textContent=['','Task 1','Task 2','Task 3'][n];
+  id('pTitle').textContent=['','Fill in the Blanks','Daily Life Reading','Academic Reading'][n];
+  id('content').innerHTML='<p style="color:#bbb;font-family:sans-serif;font-size:.9rem;">Press Generate to start.</p>';
+  buildSel(n);
+}
+
+function mkSel(sid,ph,items,grp){
+  const s=document.createElement('select'); s.id=sid;
+  const o0=document.createElement('option'); o0.value=''; o0.textContent=ph; s.appendChild(o0);
+  if(grp){ Object.entries(items).forEach(([g,arr])=>{ const og=document.createElement('optgroup'); og.label=g; arr.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; og.appendChild(o); }); s.appendChild(og); }); }
+  else{ items.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; s.appendChild(o); }); }
+  return s;
+}
+function mkLbl(t){ const s=document.createElement('span'); s.className='sel-label'; s.textContent=t; return s; }
+function mkRow(...els){ const d=document.createElement('div'); d.className='sel-row'; els.forEach(e=>d.appendChild(e)); return d; }
+
+function buildSel(n){
+  const g=id('selGrid'); g.innerHTML='';
+  if(n===1){ g.appendChild(mkRow(mkLbl('Topic:'),mkSel('s1t','Topic (optional)',T1_GROUPS,true))); }
+  else if(n===2){
+    g.appendChild(mkRow(mkLbl('Short passage:'),mkSel('s2sf','Format (random)',T2_FORMATS,false),mkSel('s2st','Topic (random)',T2_TOPICS,false)));
+    g.appendChild(mkRow(mkLbl('Long passage:'), mkSel('s2lf','Format (random)',T2_FORMATS,false),mkSel('s2lt','Topic (random)',T2_TOPICS,false)));
+  }
+  else if(n===3){ g.appendChild(mkRow(mkLbl('Subject:'),mkSel('s3s','Subject (random)',T3_SUBJECTS,false))); }
+  const btn=document.createElement('button'); btn.className='gen-btn'; btn.id='genBtn'; btn.textContent='Generate'; btn.onclick=()=>doGen();
+  g.appendChild(mkRow(btn));
+}
+
+/* ── GENERATE ── */
+async function doGen(){
+  submitted=false; picks={}; allSlotIds=[]; MQ=[]; MC=0; MS=false; MP={}; RV=null; RVdone=false; RVpicks={};
+  const btn=id('genBtn'); btn.disabled=true; btn.textContent='Generating…';
+  id('content').innerHTML='<div class="loading"><div class="spinner"></div>Generating…</div>';
+  try{
+    if(curTask===1){
+      const topic=gv('s1t')||randFrom(Object.values(T1_GROUPS).flat());
+      sessionData=await callAPI(p1(topic)); r1(sessionData);
+    } else if(curTask===2){
+      const sf=gv('s2sf')||randFrom(T2_FORMATS), st=gv('s2st')||randFrom(T2_TOPICS);
+      const lf=gv('s2lf')||randFrom(T2_FORMATS), lt=gv('s2lt')||randFrom(T2_TOPICS);
+      const [j1,j2]=await Promise.all([callAPI(p2(sf,st,'short')),callAPI(p2(lf,lt,'long'))]);
+      sessionData={task:'Task2',passages:[j1,j2]}; r2(j1,j2);
+    } else {
+      const subj=gv('s3s')||randFrom(T3_SUBJECTS);
+      sessionData=await callAPI(p3(subj)); r3(sessionData);
+    }
+    timerShow(curTask);
+  } catch(e){ id('content').innerHTML=`<div class="err-box">Error: ${e.message}</div>`; }
+  btn.disabled=false; btn.textContent='Generate';
+}
+
+/* ══ TASK 1 ══ */
+function p1(topic){ return `You are a TOEFL item writer. Subject: ${topic}.\n\nYou MUST follow EVERY rule below with zero exceptions.\n\n══ ABSOLUTE RULES ══\n1. Write EXACTLY 5 sentences (S1–S5). Blanks ONLY in S2 and S3. S1, S4, S5: NO blanks.\n2. S2 gets EXACTLY 5 blanks (BLANK_1–BLANK_5). S3 gets EXACTLY 5 blanks (BLANK_6–BLANK_10).\n3. SPACING RULE: Between any two consecutive blanks in the same sentence there must be AT LEAST 1 and AT MOST 2 non-blank words. No two blanks may be directly adjacent. Blanks must be spread across the whole sentence — do NOT cluster them at the start or end.\n4. All 10 answers are UNIQUE words. Min 2 characters. No hyphens. No single letters.\n5. VOCABULARY LEVEL: Every blank answer must be a common word a high-school student knows. NO rare technical terms, jargon, or obscure words. B2/C1 academic level only.\n6. PLACEHOLDER FORMAT: always [BLANK_N] — uppercase, underscore, square brackets only.\n\n══ SENTENCE ROLE MIX — PER SENTENCE ══\nFor EACH sentence, the 5 blanks MUST include all of the following roles (one blank per role):\n  Role 1 — SUBJECT: the main noun/pronoun that performs the action.\n  Role 2 — MAIN VERB: the primary verb of the main clause (any tense).\n  Role 3 — OBJECT or OBJECT COMPLEMENT: direct object noun, or adjective/noun that complements the object.\n  Role 4 — NOUN MODIFIER: adjective, participle, or demonstrative directly modifying a noun.\n  Role 5 — PREPOSITION: a preposition that is part of the sentence. If the verb in Role 2 has a fixed preposition partner (e.g. depend ON, focus ON, consist OF, result IN, refer TO, rely ON, engage IN, familiar WITH, responsible FOR, capable OF), then Role 5 MUST be that partner preposition. The preposition blank must sit in its NATURAL grammatical position in the sentence — do NOT move it.\n\n══ CRITICAL: NATURAL WORD ORDER ══\nNever rearrange words to force blank spacing. The sentence must read as natural English. Choose which words to blank AFTER the sentence is written, selecting words that happen to be spread out. If the verb and its preposition are far apart in the sentence, that is fine — both can still be blanked in their natural positions.\n\nSTEP 1 — Write all 5 sentences. S2 and S3 must each be 18–22 words, grammatically complex, and naturally contain a subject, main verb, object or object complement, noun modifiers, and a preposition.\nSTEP 2 — For S2: choose one word for each of the 5 roles from the sentence as written. Assign [BLANK_1]–[BLANK_5] in left-to-right order as they appear in the sentence.\nSTEP 3 — For S3: same. Assign [BLANK_6]–[BLANK_10].\nSTEP 4 — passage_with_blanks: copy the full passage replacing only the 10 chosen words with [BLANK_1]…[BLANK_10]. Do not change any other word or word order.\nSTEP 5 — For each blank: answer, hint (1 char if 2–3 letters; 2 chars if 4–5 letters; 3 chars if 6+), pos (subject-noun/main-verb/object-noun/object-complement/noun-modifier/preposition), sentence_role (subject/main verb/object/object complement/noun modifier/preposition), pair_with (if preposition: name the verb/adjective it pairs with; else blank), tense (if verb: Korean tense name e.g. 현재시제/과거시제/현재완료; else n/a), rationale (Korean 한국어).\n\nReturn ONLY valid JSON:\n{"topic":"${topic}","sentence_pair":"S2+S3","passage_with_blanks":"","blanks":[{"id":1,"answer":"","hint":"","pos":"","sentence_role":"","pair_with":"","tense":"","rationale":""}]}`; }
+
+function hintCount(h){ return (h||'').replace(/\s/g,'').length; }
+
+function r1(data){
+  if(!data||!data.blanks||!data.passage_with_blanks) throw new Error('Bad data');
+
+  /* ── DEDUPLICATE & FILTER ── */
+  const seenIds=new Set(), seenWords=new Set();
+  const blanks=data.blanks.filter(b=>{
+    if(!b||!b.answer) return false;
+    if(seenIds.has(b.id)) return false; seenIds.add(b.id);
+    const w=b.answer.toLowerCase().trim();
+    if(w.length < 2) return false;           // no single-char blanks
+    if(w.includes('-')) return false;         // no hyphenated words
+    // block rare technical / jargon words (safety net)
+    const jargon = ['organellar','phosphorylation','mitotic','epithelial','allosteric','pellucid','ameliorate','propitious','lugubrious','sanguine','vitiate','enervate','soporific','lachrymose','recondite','perspicacious','tendentious','probity','inimical','alacrity','pugnacious','obsequious','loquacious','querulous','vociferous','truculent','intransigent','perfidious','mendacious','garrulous'];
+    if(jargon.includes(w)) return false;
+    if(seenWords.has(w)) return false; seenWords.add(w); // no duplicate answers
+    return true;
+  }).slice(0, 10); // cap at 10 total (5 per sentence × 2 sentences)
+
+  if(blanks.length === 0) throw new Error('No valid blanks generated. Please try again.');
+
+  /* ── NORMALIZE: fix lowercase/mixed-case/spaced BLANK tags from AI ── */
+  let html = data.passage_with_blanks || '';
+  // Normalize ALL variants: [blank_1] [Blank_1] [BLANK_ 1] (BLANK_1) {blank_1} BLANK_1 → [BLANK_N]
+  html = html.replace(/[\[({]\s*[Bb][Ll][Aa][Nn][Kk][_\s]*(\d+)\s*[\])}]/g, '[BLANK_$1]');
+  // Also catch bare BLANK_N without brackets
+  html = html.replace(/\bBLANK_?(\d+)\b(?![\]])/g, '[BLANK_$1]');
+
+  /* ── SAFETY: strip leaked answer text after placeholders ── */
+  blanks.forEach(b=>{
+    const escaped = b.answer.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    html = html.replace(new RegExp(`(\\[BLANK_${b.id}\\])\\s*${escaped}\\b`,'gi'),'$1');
+  });
+
+  /* ── BUILD SLOTS ── */
+  allSlotIds = [];
+  blanks.forEach(b=>{
+    const hc = hintCount(b.hint);
+    const answer = b.answer || '';
+    // 3-char words: max 1 hint letter; 4-5 chars: max 2; 6+: max 3
+    const maxHint = answer.length <= 3 ? 1 : answer.length <= 5 ? 2 : 3;
+    const safeHc = Math.min(hc, maxHint, answer.length - 1);
+    const rem = answer.length - safeHc;
+    if(rem <= 0) return;
+
+    const hSpan = safeHc > 0 ? `<span class="hint-prefix">${answer.slice(0, safeHc)}</span>` : '';
+    let slots = '';
+    for(let i = 0; i < rem; i++){
+      const sid = `si_${b.id}_${i}`;
+      allSlotIds.push(sid);
+      slots += `<span class="letter-slot"><input class="slot-inp" id="${sid}" data-b="${b.id}" data-i="${i}" data-hc="${safeHc}" maxlength="1" autocomplete="off" spellcheck="false"/><span class="slot-bar"></span></span>`;
+    }
+    // Also match with 'i' flag to catch any remaining case variants
+    html = html.replace(
+      new RegExp(`\\[BLANK_${b.id}\\]`,'gi'),
+      `<span class="blank-group">${hSpan}<span class="letter-slots">${slots}</span></span>`
+    );
+  });
+
+  /* ── CLEANUP: remove any unmatched [BLANK_N] that slipped through ── */
+  html = html.replace(/\[BLANK_\d+\]/gi, '');
+
+  /* ── RATIONALE ── */
+  let rat = '<div id="ratSec" style="display:none"><div class="rat-section">';
+  blanks.forEach(b=>{
+    const tt = b.tense && b.tense !== 'n/a' ? ` <span style="color:#1565c0;font-size:.76rem">[${b.tense}]</span>` : '';
+    const roleTag = b.sentence_role ? ` <span style="color:#6a1b9a;font-size:.72rem;background:#f3e5f5;padding:1px 6px;border-radius:8px;font-weight:600;">${b.sentence_role}</span>` : '';
+    const pairTag = b.pair_with ? ` <span style="color:#e65100;font-size:.72rem;background:#fff3e0;padding:1px 6px;border-radius:8px;font-weight:600;">pairs with: ${b.pair_with}</span>` : '';
+    rat += `<div class="rat-block"><strong>Blank ${b.id} — "${b.answer}" <span style="color:#999;font-weight:normal">(${b.pos||''})</span>${tt}${roleTag}${pairTag}</strong><div class="rat-text">${b.rationale||''}</div></div>`;
+  });
+  rat += '</div></div>';
+
+  /* ── RENDER ── */
+  id('content').innerHTML = `
+    <div style="font-family:sans-serif;font-size:.78rem;color:#aaa;margin-bottom:10px;">Topic: ${data.topic||''} · ${data.sentence_pair||''}</div>
+    <div class="passage-box passage-t1" id="t1Passage">${html}</div>
+    ${rat}
+    <div class="submit-row">
+      <button class="btn-submit" onclick="sub1()">Check Answers</button>
+      <button class="btn-again" onclick="doGen()">새 주제</button>
+    </div>
+    <div class="score-box" id="scoreBox">
+      <div class="score-num" id="scoreNum"></div>
+      <div class="score-lbl">correct answers</div>
+    </div>
+    <div id="reviewArea"></div>
+  `;
+
+  /* ── KEYBOARD NAV ── */
+  allSlotIds.forEach((sid, idx)=>{
+    const inp = id(sid); if(!inp) return;
+    inp.addEventListener('input', ()=>{
+      if(inp.value.length === 1 && idx + 1 < allSlotIds.length){
+        const nx = id(allSlotIds[idx+1]); if(nx && !nx.disabled) nx.focus();
+      }
+    });
+    inp.addEventListener('keydown', e=>{
+      if(e.key === 'Backspace' && inp.value === '' && idx > 0){
+        e.preventDefault();
+        const pv = id(allSlotIds[idx-1]); if(pv && !pv.disabled){ pv.value=''; pv.focus(); }
+      }
+    });
+  });
+  const f = id(allSlotIds[0]); if(f) f.focus();
+}
+
+function sub1(){
+  if(submitted)return; submitted=true;
+  // Use same filter as r1 to ensure consistent blank set
+  const seenIds=new Set(), seenWords=new Set();
+  const blanks=(sessionData.blanks||[]).filter(b=>{
+    if(!b||!b.answer) return false;
+    if(seenIds.has(b.id)) return false; seenIds.add(b.id);
+    const w=b.answer.toLowerCase().trim();
+    if(w.length < 2) return false;
+    if(w.includes('-')) return false;
+    if(seenWords.has(w)) return false; seenWords.add(w);
+    return true;
+  });
+  let correct=0;
+  blanks.forEach(b=>{
+    const _hc=hintCount(b.hint);
+    const _maxHint=b.answer.length<=3?1:b.answer.length<=5?2:3;
+    const safeHc=Math.min(_hc,_maxHint,b.answer.length-1);
+    const rem=b.answer.slice(safeHc).toLowerCase();
+    let typed='';
+    for(let i=0;i<rem.length;i++){ const inp=id(`si_${b.id}_${i}`); if(!inp)continue; inp.disabled=true; typed+=inp.value.trim().toLowerCase(); }
+    const ok=typed===rem; if(ok)correct++;
+    for(let i=0;i<rem.length;i++){ const inp=id(`si_${b.id}_${i}`); if(!inp)continue; inp.classList.add(ok?'ok':'bad'); if(!ok)inp.value=b.answer[safeHc+i]; }
+  });
+  id('ratSec').style.display='block';
+  id('scoreNum').textContent=`${correct} / ${blanks.length}`;
+  id('scoreBox').style.display='block';
+
+  /* Show Review Session button */
+  id('reviewArea').innerHTML=`
+    <div class="submit-row" style="margin-top:4px;">
+      <button class="btn-review" id="revBtn" onclick="startReview()">📝 Start Review Session</button>
+    </div>
+  `;
+}
+
+/* ══ REVIEW SESSION ══ */
+
+function pReview(s2, s3, blanks){
+  const bList=blanks.map(b=>b.id+':'+b.answer+'('+( b.pos||'')+(b.tense&&b.tense!=='n/a'?','+b.tense:'')+')').join('; ');
+  const lines=[
+    '당신은 TOEFL 문법 리뷰 출제자입니다. 유효한 JSON만 반환하세요. 마크다운 없음.',
+    '',
+    '출제 문장:',
+    '문장1: ' + s2,
+    '문장2: ' + s3,
+    '빈칸 정답: ' + bList,
+    '',
+    '규칙: 모든 문자열 값에 큰따옴표 사용 금지. 줄바꿈 금지. 한국어로 작성.',
+    '',
+    '=== PART 1: 단어별 문장 성분 묻기 (components) ===',
+    '두 문장에서 통합하여 8~10개의 문제를 생성하세요.',
+    '각 문제는 문장 속 특정 단어(또는 짧은 구)를 지목하고,',
+    '그 단어가 속한 절 안에서 어떤 문장 성분인지 묻습니다.',
+    '',
+    '질문 형식 (label): "단어가 [절 이름]에서의 문장 성분은?"',
+    '예시:',
+    '  - "possess가 that절에서의 문장 성분은?"',
+    '  - "traits가 that절에서의 문장 성분은?"',
+    '  - "scientists가 주절에서의 문장 성분은?"',
+    '  - "discovered가 관계절에서의 문장 성분은?"',
+    '  - "efficiently가 주절에서의 문장 성분은?"',
+    '  - "in the field가 주절에서의 문장 성분은?"',
+    '',
+    '정답(answer)은 문장 성분 이름 (한국어): 주어/동사/목적어/보어/수식어/부사어 등',
+    '각 component 필드: sent(1또는2), label(위 형식), target_word(지목 단어/구 영어), answer(한국어 성분명)',
+    '',
+    '=== PART 2: 유사 구조 문장 빈칸 품사 문제 (applied) ===',
+    '문장1, 문장2와 비슷한 문법 구조의 새 영어 문장 2개를 만드세요 (완전히 다른 주제).',
+    '각 문장에서 4~5개 단어를 골라 ___(N) 형식으로 빈칸 처리.',
+    '각 빈칸에 들어갈 품사를 한국어로 묻는 주관식.',
+    '품사: 명사/동사/형용사/부사/전치사/관계대명사/분사/접속사/관사/지시형용사',
+    '',
+    '각 applied: sentence(빈칸포함 영어), sentence_korean(한국어번역),',
+    'blanks: [{num, answer_pos(한국어품사), rationale(한국어해설)}]',
+    '',
+    'JSON:',
+    '{"components":[{"sent":1,"label":"possess가 that절에서의 문장 성분은?","target_word":"possess","answer":"동사"}],"applied":[{"sentence":"The ___(1) who ___(2) the data ___(3) their findings.","sentence_korean":"한국어번역","blanks":[{"num":1,"answer_pos":"명사","rationale":"해설"}]}]}'
+  ];
+  return lines.join('\n');
+}
+
+
+
+async function startReview(){
+  const btn=id('revBtn'); if(!btn)return;
+  btn.disabled=true; btn.textContent='생성 중…';
+  id('reviewArea').innerHTML='<div class="loading" style="padding:30px 0"><div class="spinner"></div>리뷰 세션을 생성하는 중…</div>';
+  try{
+    const fullPassage=sessionData.passage_with_blanks||'';
+    const cleanPassage=fullPassage.replace(/\[BLANK_\d+\]/gi,'___');
+    const sentences=cleanPassage.match(/[^.!?]+[.!?]+/g)||[];
+    const s2=(sentences[1]||'').trim();
+    const s3=(sentences[2]||'').trim();
+    const seenIds=new Set();
+    const blanks=(sessionData.blanks||[]).filter(b=>{
+      if(!b||!b.answer)return false;
+      if(seenIds.has(b.id))return false; seenIds.add(b.id);
+      return true;
+    });
+    RV=await callAPI(pReview(s2,s3,blanks),3000);
+    RVdone=false; RVpicks={};
+    renderReview();
+  } catch(e){
+    const btn2=id('revBtn');
+    if(btn2){btn2.disabled=false; btn2.textContent='📝 다시 시도';}
+    id('reviewArea').innerHTML='<div class="err-box" style="margin-top:14px;">리뷰 오류: '+e.message+'</div>';
+  }
+}
+
+function renderReview(){
+  if(!RV){id('reviewArea').innerHTML='<div class="err-box">리뷰 데이터 없음.</div>';return;}
+
+  const seenIds=new Set();
+  const blanks=(sessionData.blanks||[]).filter(b=>{
+    if(!b||!b.answer)return false;
+    if(seenIds.has(b.id))return false; seenIds.add(b.id); return true;
+  });
+  const blankMap={};
+  blanks.forEach(b=>{ blankMap[b.id]=b.answer; });
+
+  // Build complete sentence HTML with blanks filled and target_word highlighted
+  function buildSent(rawSent, sentNum, components){
+    let s=rawSent;
+    Object.keys(blankMap).forEach(function(bid){
+      s=s.replace(new RegExp('\\[BLANK_'+bid+'\\]','gi'), blankMap[bid]);
+    });
+    s=s.replace(/\[BLANK_\d+\]/gi,'');
+
+    // Highlight each target_word for this sentence with its Q number
+    const toHL=[];
+    components.forEach(function(c,i){
+      if(!c||c.sent!==sentNum||!c.target_word) return;
+      toHL.push({word:c.target_word.trim(), qNum:i+1});
+    });
+    // Sort longest first to avoid partial matches
+    toHL.sort(function(a,b){ return b.word.length-a.word.length; });
+    toHL.forEach(function(wn){
+      const esc=wn.word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      s=s.replace(new RegExp('\\b('+esc+')\\b','i'),
+        '<span class="rv-tw-word"><span class="rv-tw-num">'+wn.qNum+'</span>$1</span>');
+    });
+
+    return '<div class="rv-sent-line"><span class="rv-sent-num">'+sentNum+'</span><span class="rv-sent-text">'+s+'</span></div>';
+  }
+
+  const rawSents=(sessionData.passage_with_blanks||'')
+    .replace(/[\[({]\s*[Bb][Ll][Aa][Nn][Kk][_\s]*(\d+)\s*[\])}]/g,'[BLANK_$1]');
+  const sentParts=rawSents.match(/[^.!?]+[.!?]+/g)||[];
+  const rawS2=(sentParts[1]||'').trim();
+  const rawS3=(sentParts[2]||'').trim();
+
+  const components=RV.components||[];
+  let qNum=0;
+
+  // Build question rows
+  let inputs='';
+  components.forEach(function(c,i){
+    if(!c||!c.label) return;
+    qNum++;
+    const iid='rv_sa_'+i;
+    const sn=c.sent||1;
+    const srcTag='<span class="rv-src-tag">'+sn+'번 문장</span>';
+    // Q number badge matching sentence highlight
+    const qBadge='<span class="rv-tw-num" style="margin-right:5px;">'+qNum+'</span>';
+
+    inputs+='<div class="rv-sa-row">'+
+      '<span class="rv-q-num">Q'+qNum+'</span>'+
+      '<label class="rv-sa-label" for="'+iid+'">'+srcTag+qBadge+(c.label||'')+'</label>'+
+      '<input class="rv-sa-input" id="'+iid+'" type="text" autocomplete="off" spellcheck="false"'+
+        ' data-answer="'+(c.answer||'').toLowerCase().trim()+'"'+
+        ' placeholder="한국어로 입력"/>'+
+      '<span class="rv-sa-result" id="'+iid+'_r"></span>'+
+      '</div>';
+  });
+
+  let html='<div class="review-header">📝 리뷰 세션 — 문장 성분 주관식</div>';
+
+  // Sentence display
+  html+='<div class="rv-sents-box">'+
+    '<div class="rv-sents-title">📖 출제 문장</div>'+
+    buildSent(rawS2, 1, components)+
+    buildSent(rawS3, 2, components)+
+    '</div>';
+
+  // Part 1 questions
+  html+='<div class="rev-section">'+
+    '<div class="rev-sec-label">문장 성분 분석</div>'+
+    '<div class="rv-sa-desc">각 단어/구가 해당 절에서 어떤 문장 성분인지 한국어로 쓰세요.</div>'+
+    '<div class="rv-sa-grid">'+inputs+'</div>'+
+    '</div>';
+
+  // Part 2: Applied structure
+  const applied=RV.applied||[];
+  if(applied.length){
+    html+='<div class="rev-section"><div class="rev-sec-label">📐 유사 구조 문장 — 빈칸 품사 쓰기</div>';
+    html+='<div class="rv-sa-desc">아래 문장의 각 빈칸에 알맞은 품사를 한국어로 쓰세요. (예: 명사, 동사, 형용사, 전치사 ...)</div>';
+    applied.forEach(function(ap,ai){
+      if(!ap||!ap.sentence) return;
+      const dispSent=ap.sentence.replace(/_+\((\d+)\)/g,
+        '<span class="rv-ap-blank">___<span class="rv-ap-bnum">($1)</span></span>');
+      html+='<div class="rv-ap-block">'+
+        '<div class="rv-ap-sent">'+dispSent+'</div>';
+      if(ap.sentence_korean) html+='<div class="rv-korean-line">'+ap.sentence_korean+'</div>';
+      (ap.blanks||[]).forEach(function(bl){
+        if(!bl) return;
+        qNum++;
+        const iid='rv_ap_'+ai+'_'+bl.num;
+        html+='<div class="rv-sa-row">'+
+          '<span class="rv-q-num">Q'+qNum+'</span>'+
+          '<label class="rv-sa-label" for="'+iid+'">빈칸 ('+bl.num+') 품사</label>'+
+          '<input class="rv-sa-input" id="'+iid+'" type="text" autocomplete="off" spellcheck="false"'+
+            ' data-answer="'+(bl.answer_pos||'').toLowerCase().trim()+'"'+
+            ' placeholder="품사를 한국어로 입력"/>'+
+          '<span class="rv-sa-result" id="'+iid+'_r"></span>'+
+          '</div>';
+        if(bl.rationale) html+='<div class="rv-ap-rat" id="'+iid+'_rat" style="display:none">'+bl.rationale+'</div>';
+      });
+      html+='</div>';
+    });
+    html+='</div>';
+  }
+
+  html+=
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px;">'+
+    '<button class="rev-submit" onclick="submitReview()">리뷰 답안 확인</button>'+
+    '<button class="btn-again" onclick="doGen()">새 주제</button></div>'+
+    '<div class="rev-score" id="revScore"><div class="rev-score-num" id="revScoreNum"></div><div class="rev-score-lbl">리뷰 세션 정답</div></div>';
+
+  id('reviewArea').innerHTML=html;
+  id('reviewArea').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+
+function rvPick(prefix,letter){
+  if(RVdone)return;
+  RVpicks[prefix]=letter;
+  ['A','B','C','D'].forEach(function(l){const b=id(prefix+'_'+l);if(b)b.className='choice'+(l===letter?' sel':'');});
+}
+
+function submitReview(){
+  if(RVdone)return; RVdone=true;
+  let total=0, correct=0;
+  document.querySelectorAll('.rv-sa-input').forEach(function(inp){
+    total++;
+    const typed=(inp.value||'').toLowerCase().trim();
+    const ans=(inp.dataset.answer||'').toLowerCase().trim();
+    const ok=ans&&typed&&(typed===ans||ans.includes(typed)||typed.includes(ans));
+    if(ok)correct++;
+    inp.disabled=true;
+    inp.classList.add(ok?'ok':'bad');
+    const r=document.getElementById(inp.id+'_r');
+    if(r){ r.textContent=ok?'✓':'✗ '+inp.dataset.answer; r.className='rv-sa-result '+(ok?'rv-sa-ok':'rv-sa-bad'); }
+    // Show rationale for applied blanks
+    const rat=document.getElementById(inp.id+'_rat');
+    if(rat) rat.style.display='block';
+  });
+  id('revScoreNum').textContent=correct+' / '+total;
+  id('revScore').style.display='block';
+}
+
+/* ══ TASK 2 ══ */
+function p2(fmt,topic,len){
+  const short=len==='short';
+  return `You are a TOEFL item writer for Task 2. Format: ${fmt}. Topic: ${topic}. Length: ${short?'SHORT':'LONG'}.\nWrite an ORIGINAL realistic ${fmt} about "${topic}".\n${short?'15–30 words, 1 paragraph, exactly 2 questions.':'80–100 words, 1-3 paragraphs max, exactly 3 questions.'}\nFormat: email(From/To/Subject/Date), message_conversation(names+timestamps), advertisement(name,price,tagline), news_article(headline+dateline), sns_post(username,likes), official_notice(org,date,ref).\n${short?'Q1=Detail, Q2=Purpose or Inference or NOT':'Q1=Detail, Q2=Purpose or Inference, Q3=NOT or Detail'}\nReturn ONLY valid JSON:\n{"format":"${fmt}","length_type":"${short?'short':'long'}","word_count":0,"passage":{"title_line":"","body":""},"questions":[{"id":"Q1","type":"","stem":"","choices":{"A":"","B":"","C":"","D":""},"answer":"","rationale":"","evidence":[""]}]}`;
+}
+
+function r2(d1,d2){
+  function pHTML(data,label){
+    const body=(data.passage.body||'').split(/\n\n+/).map(p=>`<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+    return `<div class="pass-tag">${label}</div><div class="passage-box">${data.passage.title_line?`<div class="passage-meta">${data.passage.title_line}</div>`:''}<div class="passage-body">${body}</div><div style="font-family:sans-serif;font-size:.72rem;color:#ccc;margin-top:10px;">${data.word_count||''} words</div></div>`;
+  }
+  MP={ p1: pHTML(d1,'Passage 1 · Short'), p2: pHTML(d2,'Passage 2 · Long') };
+  MQ=[
+    ...(d1.questions||[]).map((q,i)=>({...q,id:`P1-Q${i+1}`,_tag:'Passage 1 · Short',_pk:'p1'})),
+    ...(d2.questions||[]).map((q,i)=>({...q,id:`P2-Q${i+1}`,_tag:'Passage 2 · Long',_pk:'p2'}))
+  ];
+  MC=0; MS=false;
+  id('content').innerHTML=`<div class="split-layout"><div class="pass-panel" id="PP"></div><div class="q-panel" id="QP"></div></div>`;
+  id('QP').innerHTML=qShell();
+  renderQ();
+}
+
+/* ══ TASK 3 ══ */
+function p3(subj){ return `You are a TOEFL item writer for Task 3. Subject: ${subj}.\nWrite an ORIGINAL academic passage. STRICT LIMIT: 150–200 words maximum. Use 2–3 paragraphs. Write in neutral third-person academic style. Do NOT exceed 200 words under any circumstance.\nAlso write a concise academic title for the passage (5–10 words).\nExactly 5 MCQ questions. Required types: Main Idea, Detail, Inference, plus Vocabulary or Reference.\n4 choices A-D, one correct.\nReturn ONLY valid JSON:\n{"subject_area":"${subj}","title":"","word_count":0,"passage":"","questions":[{"id":"Q1","type":"","stem":"","choices":{"A":"","B":"","C":"","D":""},"answer":"","rationale":"","evidence":[""]}]}`; }
+
+function r3(data){
+  const body=(data.passage||'').split(/\n\n+/).map(p=>`<p>${p.trim()}</p>`).join('');
+  const titleHTML=data.title?`<div class="passage-title">${data.title}</div>`:'';
+  MP={ default:`<div class="passage-box">${titleHTML}<div class="passage-meta">${data.subject_area||''} · ${data.word_count||''} words</div><div class="passage-body">${body}</div></div>` };
+  MQ=(data.questions||[]).map(q=>({...q,_pk:'default'}));
+  MC=0; MS=false;
+  id('content').innerHTML=`<div class="split-layout"><div class="pass-panel" id="PP"></div><div class="q-panel" id="QP"></div></div>`;
+  id('QP').innerHTML=qShell();
+  renderQ();
+}
+
+/* ══ MCQ SHELL + RENDER ══ */
+function qShell(){
+  return `<div class="q-nav"><button class="nav-btn" id="QB" onclick="qGo(-1)" disabled>← Back</button><span class="q-nav-counter" id="QC"></span><div class="q-nav-dots" id="QD"></div><button class="nav-btn" id="QN" onclick="qGo(1)">Next →</button></div><div id="QK"></div><div class="submit-row" id="QSR" style="display:none"><button class="btn-submit" onclick="subMCQ()">Submit All Answers</button></div><div class="submit-row" style="margin-top:10px"><button class="btn-again" onclick="doGen()">새 주제</button></div><div class="score-box" id="scoreBox"><div class="score-num" id="scoreNum"></div><div class="score-lbl">correct answers</div></div>`;
+}
+
+function renderQ(){
+  const q=MQ[MC], total=MQ.length;
+  const pp=id('PP');
+  if(pp){ pp.innerHTML = MP[q._pk] || ''; }
+  id('QC').textContent=`Question ${MC+1} of ${total}`;
+  id('QB').disabled=MC===0;
+  id('QN').textContent=MC===total-1?'Review →':'Next →';
+  id('QSR').style.display=MC===total-1?'flex':'none';
+  const dd=id('QD'); dd.innerHTML='';
+  MQ.forEach((_,i)=>{ const d=document.createElement('button'); d.className='q-dot'; if(i===MC)d.classList.add('active'); else if(MS)d.classList.add(picks[i]===MQ[i].answer?'correct':'wrong2'); else if(picks[i])d.classList.add('answered'); d.onclick=()=>{MC=i;renderQ();}; dd.appendChild(d); });
+  const ptag=q._tag?`<div class="q-passage-tag">${q._tag}</div>`:'';
+  let ch='';
+  ['A','B','C','D'].forEach(l=>{ if(q.choices&&q.choices[l]!=null){ let cls='choice'; if(picks[MC]===l)cls+=' sel'; if(MS){ if(l===q.answer)cls='choice correct'; else if(picks[MC]===l)cls='choice wrong'; } const dis=MS?'disabled':''; ch+=`<button class="${cls}" onclick="doPick(${MC},'${l}','${q.answer}',this)" ${dis}>${l}. ${q.choices[l]}</button>`; } });
+  const ev=(q.evidence||[]).map(e=>`<div class="evid">"${e}"</div>`).join('');
+  id('QK').innerHTML=`<div class="q-block">${ptag}<div class="q-num">${q.id}</div><div class="q-type">${q.type||''}</div><div class="q-stem">${q.stem||''}</div><div class="choices">${ch}</div><div class="rationale" style="${MS?'display:block':'display:none'}">${q.rationale||''}${ev}</div></div>`;
+}
+
+function qGo(d){ MC=Math.max(0,Math.min(MQ.length-1,MC+d)); renderQ(); }
+function doPick(idx,letter,correct,el){ if(MS)return; picks[idx]=letter; renderQ(); }
+function subMCQ(){
+  if(MS)return; MS=true; submitted=true;
+  let correct=0; MQ.forEach((q,i)=>{ if(picks[i]===q.answer)correct++; });
+  renderQ();
+  id('scoreNum').textContent=`${correct} / ${MQ.length}`;
+  id('scoreBox').style.display='block';
+  id('QSR').style.display='none';
+}
+</script>
+</body>
+</html>
